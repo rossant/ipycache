@@ -19,7 +19,7 @@ setup(
     license="BSD",
     keywords="ipython notebook cache",
     url="http://packages.python.org/ipycache",
-    py_modules=['cachemagic'],
+    py_modules=['ipycache'],
     long_description=read('README'),
     classifiers=[
         "Development Status :: 3 - Alpha",
