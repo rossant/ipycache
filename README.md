@@ -24,7 +24,7 @@ Usage
   
   * Then, create a cell with:
   
-        %%cache var1 var2 --to=mycache.pkl
+        %%cache mycache.pkl var1 var2
         var1 = 1
         var2 = 2
 

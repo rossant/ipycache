@@ -28,13 +28,17 @@ class CacheMagics(Magics, Configurable):
     
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
+        'to', nargs=1, type=str,
+        help="Path to the file containing the cached variables."
+    )
+    @magic_arguments.argument(
         'vars', nargs='*', type=str,
         help="Variables to save."
     )
-    @magic_arguments.argument(
-        '-t', '--to',
-        help="Path to the file containing the cached variables."
-    )
+    # @magic_arguments.argument(
+        # '-t', '--to',
+        # help="Path to the file containing the cached variables."
+    # )
     @magic_arguments.argument(
         '-f', '--force', action='store_true', default=False,
         help="Force the cell's execution and save the variables."
@@ -46,7 +50,7 @@ class CacheMagics(Magics, Configurable):
         
         Usage::
         
-            %%cache var1 var2 --to=myfile.pkl
+            %%cache myfile.pkl var1 var2
             # If myfile.pkl doesn't exist, this cell is executed and 
             # var1 and var2 are saved in this file.
             # Otherwise, the cell is skipped and these variables are
@@ -58,13 +62,13 @@ class CacheMagics(Magics, Configurable):
         ip = self.shell
         args = magic_arguments.parse_argstring(self.cache, line)
         code = cell if cell.endswith('\n') else cell+'\n'
-        path = args.to
+        path = args.to[0]
         if not path:
-            raise ValueError("The path needs to be specified with --to.")
+            raise ValueError("The path needs to be specified as a first argument.")
         # If the cache file exists, and no --force mode, load the requested 
         # variables from the specified file into the interactive namespace.
         if os.path.exists(path) and not args.force:
-            with open(path, 'r') as f:
+            with open(path, 'rb') as f:
                 cache = cPickle.load(f)
                 print(("Skipping the cell's code and loading variables {0:s} "
                        "from file '{1:s}'.").format(
