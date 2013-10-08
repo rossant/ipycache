@@ -24,6 +24,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
+        "Framework :: IPython",
         "License :: OSI Approved :: BSD License",
     ],
 )
