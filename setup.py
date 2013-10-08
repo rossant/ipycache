@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name="ipycache",
-    version="0.1.0",
+    version="0.1.1",
     author="Cyrille Rossant",
     author_email="rossant@github",
     description=(("Defines a %%cache cell magic in the IPython notebook to "
