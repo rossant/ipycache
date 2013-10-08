@@ -3,6 +3,11 @@
 
 Defines a %%cache cell magic in the IPython notebook to cache results of long-lasting computations in a persistent pickle file. Useful when some computations in a notebook are long and you want to easily save the results in a file.
 
+Example
+-------
+
+  * [Example notebook](http://nbviewer.ipython.org/urls/raw.github.com/rossant/ipycache/master/test.ipynb).
+
 
 Installation
 ------------
