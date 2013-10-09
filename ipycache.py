@@ -90,7 +90,7 @@ def load_vars(path, vars):
         
         # Check that all requested variables could be loaded successfully
         # from the cache.
-        missing_vars = list(set(vars) - set(cache.keys()))
+        missing_vars = sorted(set(vars) - set(cache.keys()))
         if missing_vars:
             raise ValueError(("The following variables could not be loaded "
                 "from the cache: {0:s}").format(
