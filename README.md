@@ -6,7 +6,7 @@ Defines a %%cache cell magic in the IPython notebook to cache results of long-la
 Example
 -------
 
-  * [Example notebook](http://nbviewer.ipython.org/urls/raw.github.com/rossant/ipycache/master/test.ipynb).
+  * [Example notebook](http://nbviewer.ipython.org/urls/raw.github.com/rossant/ipycache/master/example.ipynb).
 
 
 Installation
