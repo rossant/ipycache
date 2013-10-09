@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Defines a %%cache cell magic in the notebook to persistent-cache results of 
+"""Defines a %%cache cell magic in the notebook to persistent-cache results of 
 long-lasting computations.
 """
 
@@ -27,8 +26,22 @@ PY3 = sys.version_info[0] == 3
 
 if PY3:
     _iteritems = "items"
+    
+    exec_ = getattr(moves.builtins, "exec")
 else:
     _iteritems = "iteritems"
+    
+    def exec_(_code_, _globs_=None, _locs_=None):
+        """Execute code in a namespace."""
+        if _globs_ is None:
+            frame = sys._getframe(1)
+            _globs_ = frame.f_globals
+            if _locs_ is None:
+                _locs_ = frame.f_locals
+            del frame
+        elif _locs_ is None:
+            _locs_ = _globs_
+        exec("""exec _code_ in _globs_, _locs_""")
     
 def iteritems(d, **kw):
     """Return an iterator over the (key, value) pairs of a dictionary."""
@@ -102,13 +115,13 @@ def cache(cell, path, vars=[],
           # without IPython, by giving mock functions here instead of IPython
           # methods.
           ip_user_ns={}, ip_run_cell=None, ip_push=None,
-          force=False, verbose=True, read=False):
+          force=False, read=False, verbose=True):
     
     if not path:
         raise ValueError("The path needs to be specified as a first argument.")
         
-    if do_save(path, force=args.force, read=args.read):
-        ip.run_cell(cell)
+    if do_save(path, force=force, read=read):
+        ip_run_cell(cell)
         # Create the cache from the namespace.
         try:
             cache = {var: ip_user_ns[var] for var in vars}
@@ -125,14 +138,13 @@ def cache(cell, path, vars=[],
     # variables from the specified file into the interactive namespace.
     else:
         # Load the variables from cache in inject them in the namespace.
-        ip.push(load_vars(path, vars))
+        ip_push(load_vars(path, vars))
         
         if verbose:
             print(("Skipped the cell's code and loaded variables {0:s} "
                    "from file '{1:s}'.").format(', '.join(vars), path))
         
     
-
 #------------------------------------------------------------------------------
 # Magics class
 #------------------------------------------------------------------------------

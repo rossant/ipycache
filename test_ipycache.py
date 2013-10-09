@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Tests for ipycache.
+"""Tests for ipycache.
 """
 
 #------------------------------------------------------------------------------
@@ -9,10 +8,11 @@ Tests for ipycache.
 import os
 from nose.tools import raises, assert_raises
 from ipycache import (save_vars, load_vars, clean_var, clean_vars, do_save, 
-    cache)
+    cache, exec_)
+
 
 #------------------------------------------------------------------------------
-# Tests
+# Functions tests
 #------------------------------------------------------------------------------
 def test_clean_var():
     assert clean_var('abc') == 'abc'
@@ -55,3 +55,43 @@ def test_save_load():
     os.remove(path)
     
 
+#------------------------------------------------------------------------------
+# Cache magic tests
+#------------------------------------------------------------------------------
+def test_cache_1():
+    path = 'myvars.pkl'
+    cell = """a = 1"""
+    
+    user_ns = {}
+    def ip_run_cell(cell):
+        exec_(cell, {}, user_ns)
+    
+    def ip_push(vars):
+        user_ns.update(vars)
+    
+    cache(cell, path, vars=['a'], force=False, read=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 1
+    
+    # We modify the variable in the namespace,
+    user_ns['a'] = 2
+    # and execute the cell again. The value should be loaded from the pickle
+    # file.
+    cache("""a = 2""", path, vars=['a'], force=False, read=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 1
+    
+    # Now, we force the cell's execution.
+    cache("""a = 2""", path, vars=['a'], force=True, read=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 2
+    
+    # Now, we prevent the cell's execution.
+    user_ns['a'] = 0
+    cache("""a = 3""", path, vars=['a'], force=False, read=True,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 2
+    
+    os.remove(path)
+    
+    
