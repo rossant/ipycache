@@ -34,7 +34,7 @@ Usage
   
   * Use the `--read` or `-r` option to prevent the cell's execution and always load the variables from the cache. An exception is raised if the file does not exist.
   
-  * Use the `--cachedir` or `-d` option to specify the cache directory. You can specify a default directory in the IPython configuration file in your profile (typically in ~\.ipython\profile_default\ipython_config.py`) by adding the following line:
+  * Use the `--cachedir` or `-d` option to specify the cache directory. You can specify a default directory in the IPython configuration file in your profile (typically in `~\.ipython\profile_default\ipython_config.py`) by adding the following line:
   
         c.CacheMagics.cachedir = "/path/to/mycache"
   
