@@ -14,6 +14,7 @@ import inspect, os, sys, textwrap, cPickle
 from IPython.config.configurable import Configurable
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
+from IPython.utils.traitlets import Unicode
 
 
 #------------------------------------------------------------------------------
@@ -154,6 +155,8 @@ class CacheMagics(Magics, Configurable):
 
     Provides the %cache magic."""
     
+    cachedir = Unicode('', config=True)
+    
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         'to', nargs=1, type=str,
@@ -166,6 +169,10 @@ class CacheMagics(Magics, Configurable):
     @magic_arguments.argument(
         '-v', '--verbose', action='store_true', default=True,
         help="Display information when loading/saving variables."
+    )
+    @magic_arguments.argument(
+        '-d', '--cachedir',
+        help="Cache directory as an absolute or relative path."
     )
     @magic_arguments.argument(
         '-f', '--force', action='store_true', default=False,
@@ -195,9 +202,25 @@ class CacheMagics(Magics, Configurable):
         ip = self.shell
         args = magic_arguments.parse_argstring(self.cache, line)
         code = cell if cell.endswith('\n') else cell+'\n'
-        path = args.to[0]
         vars = clean_vars(args.vars)
-        
+        path = args.to[0]
+        # The cachedir can be specified with --cachedir or in
+        # ipython_config.py
+        try:
+            cachedir_profile = ip.config.CacheMagics.cachedir
+        except AttributeError:
+            cachedir_profile = self.cachedir
+        cachedir = args.cachedir or cachedir_profile
+        # If path is relative, use the user-specified cache cachedir.
+        if not os.path.isabs(path) and cachedir:
+            # Try to create the cachedir if it does not already exist.
+            if not os.path.exists(cachedir):
+                try:
+                    os.mkdir(cachedir)
+                    print("Created cachedir '{0:s}'.".format(cachedir))
+                except:
+                    pass
+            path = os.path.join(cachedir, path)
         cache(cell, path, vars=vars, 
               force=args.force, verbose=args.verbose, read=args.read,
               # IPython methods
