@@ -94,4 +94,22 @@ def test_cache_1():
     
     os.remove(path)
     
+@raises(ValueError)
+def test_cache_fail_1():
+    """Fails when saving inexistent variables."""
+    path = 'myvars.pkl'
+    cell = """a = 1"""
+    
+    user_ns = {}
+    def ip_run_cell(cell):
+        exec_(cell, {}, user_ns)
+    
+    def ip_push(vars):
+        user_ns.update(vars)
+    
+    cache(cell, path, vars=['a', 'b'],
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    
+    os.remove(path)
+    
     

@@ -127,8 +127,11 @@ def cache(cell, path, vars=[],
         try:
             cache = {var: ip_user_ns[var] for var in vars}
         except KeyError:
-            raise ValueError(("Variable '{0:s}' could not be found in the "
-                              "interactive namespace").format(var))
+            vars_missing = set(vars) - set(ip_user_ns.keys())
+            vars_missing_str = ', '.join(["'{0:s}'".format(_) 
+                for _ in vars_missing])
+            raise ValueError(("Variable(s) {0:s} could not be found in the "
+                              "interactive namespace").format(vars_missing_str))
         # Save the cache in the pickle file.
         save_vars(path, cache)
         if verbose:
