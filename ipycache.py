@@ -112,6 +112,32 @@ def save_vars(path, vars_d):
     with open(path, 'wb') as f:
         cPickle.dump(vars_d, f)
     
+    
+#------------------------------------------------------------------------------
+# CapturedIO
+#------------------------------------------------------------------------------
+def save_captured_io(io):
+    return dict(
+            stdout=io._stdout,
+            stderr=io._stderr,
+            outputs=getattr(io, '_outputs', []), # Only IPython master has this
+        )
+        
+def load_captured_io(captured_io):
+    try:
+        return CapturedIO(captured_io.get('stdout', None),
+                          captured_io.get('stderr', None),
+                          outputs=captured_io.get('outputs', []),
+                          )
+    except TypeError:
+        return CapturedIO(captured_io.get('stdout', None),
+                          captured_io.get('stderr', None),
+                          )
+                            
+            
+#------------------------------------------------------------------------------
+# %%cache Magics
+#------------------------------------------------------------------------------
 def cache(cell, path, vars=[],
           # HACK: this function implementing the magic's logic is testable
           # without IPython, by giving mock functions here instead of IPython
@@ -121,6 +147,8 @@ def cache(cell, path, vars=[],
     
     if not path:
         raise ValueError("The path needs to be specified as a first argument.")
+    
+    path = os.path.abspath(path)
         
     if do_save(path, force=force, read=read):
         # Capture the outputs of the cell.
@@ -136,11 +164,7 @@ def cache(cell, path, vars=[],
             raise ValueError(("Variable(s) {0:s} could not be found in the "
                               "interactive namespace").format(vars_missing_str))
         # Save the outputs in the cache.
-        cache['_captured_io'] = dict(
-            stdout=io._stdout,
-            stderr=io._stderr,
-            outputs=io._outputs,
-        )
+        cache['_captured_io'] = save_captured_io(io)
         # Save the cache in the pickle file.
         save_vars(path, cache)
         if verbose:
@@ -153,25 +177,17 @@ def cache(cell, path, vars=[],
         # Load the variables from cache in inject them in the namespace.
         cache = load_vars(path, vars)
         # Handle the outputs separately.
-        outputs = cache.get('_captured_io', {})
-        io = CapturedIO(outputs.get('stdout', None),
-                        outputs.get('stderr', None),
-                        outputs.get('outputs', []),
-                        )
+        io = load_captured_io(cache.get('_captured_io', {}))
         # Push the remaining variables in the namespace.
         ip_push(cache)
         if verbose:
             print(("[Skipped the cell's code and loaded variables {0:s} "
                    "from file '{1:s}'.]").format(', '.join(vars), path))
-                   
     # Display the outputs, whether they come from the cell's execution
     # or the pickle file.
     io()
         
     
-#------------------------------------------------------------------------------
-# Magics class
-#------------------------------------------------------------------------------
 @magics_class
 class CacheMagics(Magics, Configurable):
     """Variable caching.
