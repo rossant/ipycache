@@ -6,6 +6,8 @@
 # Imports
 #------------------------------------------------------------------------------
 import os
+import sys
+from cStringIO import StringIO
 from nose.tools import raises, assert_raises
 from ipycache import (save_vars, load_vars, clean_var, clean_vars, do_save, 
     cache, exec_)
@@ -91,6 +93,38 @@ def test_cache_1():
     cache("""a = 3""", path, vars=['a'], force=False, read=True,
           ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
     assert user_ns['a'] == 2
+    
+    os.remove(path)
+    
+def test_cache_outputs():
+    """Test the capture of stdout."""
+    path = 'myvars.pkl'
+    cell = """a = 1;print(a+1)"""
+    
+    user_ns = {}
+    def ip_run_cell(cell):
+        exec_(cell, {}, user_ns)
+    
+    def ip_push(vars):
+        user_ns.update(vars)
+    
+    cache(cell, path, vars=['a'], verbose=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 1
+    
+    # Capture stdout.
+    old_stdout = sys.stdout
+    sys.stdout = mystdout = StringIO()
+
+    user_ns = {}
+    cache(cell, path, vars=['a'], verbose=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 1
+    
+    sys.stdout = old_stdout
+    
+    # Check that stdout contains the print statement of the cached cell.
+    assert mystdout.getvalue() == '2\n'
     
     os.remove(path)
     
