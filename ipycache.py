@@ -15,6 +15,7 @@ from IPython.config.configurable import Configurable
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 from IPython.utils.traitlets import Unicode
+from IPython.utils.io import capture_output, CapturedIO
 
 
 #------------------------------------------------------------------------------
@@ -122,7 +123,9 @@ def cache(cell, path, vars=[],
         raise ValueError("The path needs to be specified as a first argument.")
         
     if do_save(path, force=force, read=read):
-        ip_run_cell(cell)
+        # Capture the outputs of the cell.
+        with capture_output() as io:
+            ip_run_cell(cell)
         # Create the cache from the namespace.
         try:
             cache = {var: ip_user_ns[var] for var in vars}
@@ -132,21 +135,38 @@ def cache(cell, path, vars=[],
                 for _ in vars_missing])
             raise ValueError(("Variable(s) {0:s} could not be found in the "
                               "interactive namespace").format(vars_missing_str))
+        # Save the outputs in the cache.
+        cache['_captured_io'] = dict(
+            stdout=io._stdout,
+            stderr=io._stderr,
+            outputs=io._outputs,
+        )
         # Save the cache in the pickle file.
         save_vars(path, cache)
         if verbose:
-            print("Saved variables {0:s} to file '{1:s}'.".format(
+            print("[Saved variables {0:s} to file '{1:s}'.]".format(
                 ', '.join(vars), path))
         
     # If the cache file exists, and no --force mode, load the requested 
     # variables from the specified file into the interactive namespace.
     else:
         # Load the variables from cache in inject them in the namespace.
-        ip_push(load_vars(path, vars))
-        
+        cache = load_vars(path, vars)
+        # Handle the outputs separately.
+        outputs = cache.get('_captured_io', {})
+        io = CapturedIO(outputs.get('stdout', None),
+                        outputs.get('stderr', None),
+                        outputs.get('outputs', []),
+                        )
+        # Push the remaining variables in the namespace.
+        ip_push(cache)
         if verbose:
-            print(("Skipped the cell's code and loaded variables {0:s} "
-                   "from file '{1:s}'.").format(', '.join(vars), path))
+            print(("[Skipped the cell's code and loaded variables {0:s} "
+                   "from file '{1:s}'.]").format(', '.join(vars), path))
+                   
+    # Display the outputs, whether they come from the cell's execution
+    # or the pickle file.
+    io()
         
     
 #------------------------------------------------------------------------------
@@ -220,7 +240,7 @@ class CacheMagics(Magics, Configurable):
             if not os.path.exists(cachedir):
                 try:
                     os.mkdir(cachedir)
-                    print("Created cachedir '{0:s}'.".format(cachedir))
+                    print("[Created cachedir '{0:s}'.]".format(cachedir))
                 except:
                     pass
             path = os.path.join(cachedir, path)
