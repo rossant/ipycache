@@ -196,6 +196,10 @@ class CacheMagics(Magics, Configurable):
     
     cachedir = Unicode('', config=True)
     
+    def __init__(self, shell=None):
+        Magics.__init__(self, shell)
+        Configurable.__init__(self, config=shell.config)
+     
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         'to', nargs=1, type=str,
@@ -245,11 +249,7 @@ class CacheMagics(Magics, Configurable):
         path = args.to[0]
         # The cachedir can be specified with --cachedir or in
         # ipython_config.py
-        try:
-            cachedir_profile = ip.config.CacheMagics.cachedir
-        except AttributeError:
-            cachedir_profile = self.cachedir
-        cachedir = args.cachedir or cachedir_profile
+        cachedir = args.cachedir or self.cachedir
         # If path is relative, use the user-specified cache cachedir.
         if not os.path.isabs(path) and cachedir:
             # Try to create the cachedir if it does not already exist.
