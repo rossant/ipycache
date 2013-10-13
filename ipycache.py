@@ -210,8 +210,8 @@ class CacheMagics(Magics, Configurable):
         help="Variables to save."
     )
     @magic_arguments.argument(
-        '-v', '--verbose', action='store_true', default=True,
-        help="Display information when loading/saving variables."
+        '-s', '--silent', action='store_true', default=False,
+        help="Do not display information when loading/saving variables."
     )
     @magic_arguments.argument(
         '-d', '--cachedir',
@@ -261,7 +261,7 @@ class CacheMagics(Magics, Configurable):
                     pass
             path = os.path.join(cachedir, path)
         cache(cell, path, vars=vars, 
-              force=args.force, verbose=args.verbose, read=args.read,
+              force=args.force, verbose=not args.silent, read=args.read,
               # IPython methods
               ip_user_ns=ip.user_ns, 
               ip_run_cell=ip.run_cell,
