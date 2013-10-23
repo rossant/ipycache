@@ -53,6 +53,12 @@ def iteritems(d, **kw):
 #------------------------------------------------------------------------------
 # Functions
 #------------------------------------------------------------------------------
+def conditional_eval(var, variables):
+    """ Evaluates the variable string if it starts with $. """
+    if var[0] == '$':
+        return variables.get(var[1:], var)
+    return var
+
 def clean_var(var):
     """Clean variable name, removing accidental commas, etc."""
     return var.strip().replace(',', '')
@@ -246,10 +252,11 @@ class CacheMagics(Magics, Configurable):
         args = magic_arguments.parse_argstring(self.cache, line)
         code = cell if cell.endswith('\n') else cell+'\n'
         vars = clean_vars(args.vars)
-        path = args.to[0]
-        # The cachedir can be specified with --cachedir or in
-        # ipython_config.py
-        cachedir = args.cachedir or self.cachedir
+        path = conditional_eval(args.to[0], ip.user_ns)
+        cachedir_from_path = os.path.split(path)[0]
+        # The cachedir can be specified with --cachedir or inferred from the
+        # path or in ipython_config.py
+        cachedir = args.cachedir or cachedir_from_path or self.cachedir
         # If path is relative, use the user-specified cache cachedir.
         if not os.path.isabs(path) and cachedir:
             # Try to create the cachedir if it does not already exist.
@@ -267,7 +274,6 @@ class CacheMagics(Magics, Configurable):
               ip_run_cell=ip.run_cell,
               ip_push=ip.push,
               )
-        
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
