@@ -10,12 +10,16 @@ import sys
 from cStringIO import StringIO
 from nose.tools import raises, assert_raises
 from ipycache import (save_vars, load_vars, clean_var, clean_vars, do_save, 
-    cache, exec_)
+    cache, exec_, conditional_eval)
 
 
 #------------------------------------------------------------------------------
 # Functions tests
 #------------------------------------------------------------------------------
+def test_conditional_eval():
+    test_var = 'abc'
+    assert conditional_eval('$test_var', locals()) == 'abc'
+
 def test_clean_var():
     assert clean_var('abc') == 'abc'
     assert clean_var('abc ') == 'abc'
@@ -127,7 +131,7 @@ def test_cache_outputs():
     assert mystdout.getvalue() == '2\n'
     
     os.remove(path)
-    
+
 @raises(ValueError)
 def test_cache_fail_1():
     """Fails when saving inexistent variables."""
@@ -145,5 +149,3 @@ def test_cache_fail_1():
           ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
     
     os.remove(path)
-    
-    

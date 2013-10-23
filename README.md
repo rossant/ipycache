@@ -28,8 +28,11 @@ Usage
         var1 = 1
         var2 = 2
 
+
   * When you execute this cell the first time, the code is executed, and the variables `var1` and `var2` are saved in `mycache.pkl` in the current directory along with the outputs. Rich display outputs are only saved if you use the development version of IPython. When you execute this cell again, the code is skipped, the variables are loaded from the file and injected into the namespace, and the outputs are restored in the notebook.
-  
+
+  * Alternatively use $file_name instead mycache.pkl, where "file_name" is a variable holding the path to the file used for caching.
+
   * Use the `--force` or `-f` option to force the cell's execution and overwrite the file.
   
   * Use the `--read` or `-r` option to prevent the cell's execution and always load the variables from the cache. An exception is raised if the file does not exist.
