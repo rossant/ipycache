@@ -100,6 +100,25 @@ def test_cache_1():
     
     os.remove(path)
     
+def test_cache_exception():
+    """Check that, if an exception is raised during the cell's execution,
+    the pickle file is not written."""
+    path = 'myvars.pkl'
+    cell = """a = 1;b = 1/0"""
+    
+    user_ns = {}
+    def ip_run_cell(cell):
+        exec_(cell, {}, user_ns)
+    
+    def ip_push(vars):
+        user_ns.update(vars)
+    
+    cache(cell, path, vars=['a'], force=False, read=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 1
+    
+    assert not os.path.exists(path), os.remove(path)
+    
 def test_cache_outputs():
     """Test the capture of stdout."""
     path = 'myvars.pkl'

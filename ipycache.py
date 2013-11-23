@@ -159,7 +159,12 @@ def cache(cell, path, vars=[],
     if do_save(path, force=force, read=read):
         # Capture the outputs of the cell.
         with capture_output() as io:
-            ip_run_cell(cell)
+            try:
+                ip_run_cell(cell)
+            except:
+                # Display input/output.
+                io()
+                return
         # Create the cache from the namespace.
         try:
             cache = {var: ip_user_ns[var] for var in vars}
