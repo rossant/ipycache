@@ -42,3 +42,7 @@ Usage
         c.CacheMagics.cachedir = "/path/to/mycache"
   
     If both a default cache directory and the `--cachedir` option are given, the latter is used.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/rossant/ipycache/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
