@@ -8,7 +8,7 @@ long-lasting computations.
 #------------------------------------------------------------------------------
 
 # Stdlib
-import inspect, os, sys, textwrap, cPickle
+import inspect, os, sys, textwrap, cPickle, re
 
 # Our own
 from IPython.config.configurable import Configurable
@@ -54,10 +54,18 @@ def iteritems(d, **kw):
 # Functions
 #------------------------------------------------------------------------------
 def conditional_eval(var, variables):
-    """ Evaluates the variable string if it starts with $. """
+    """
+    Evaluates the variable string if it starts with $.
+    If the variable string contains one or several {code} statements, the code
+    is executed and the result stringified (wrapped in str()) into the rest of
+    the string.
+    """
     if var[0] == '$':
         return variables.get(var[1:], var)
-    return var
+    def evalfun(x):
+        code=x.group(0)[1:-1]
+        return str(eval(code, variables))
+    return re.sub(r'{.*?}', evalfun, var, flags=re.DOTALL)
 
 def clean_var(var):
     """Clean variable name, removing accidental commas, etc."""

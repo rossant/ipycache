@@ -19,7 +19,11 @@ from ipycache import (save_vars, load_vars, clean_var, clean_vars, do_save,
 def test_conditional_eval():
     test_var = 'abc'
     assert conditional_eval('$test_var', locals()) == 'abc'
-
+    x,fun=10,lambda x: x
+    test_eval='abc_{"10" if x==10 else "not_10"}_{fun(10)}'
+    expect='abc_10_10'
+    assert conditional_eval(test_eval, locals())==expect
+                             
 def test_clean_var():
     assert clean_var('abc') == 'abc'
     assert clean_var('abc ') == 'abc'
