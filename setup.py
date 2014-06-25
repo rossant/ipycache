@@ -20,7 +20,7 @@ setup(
     keywords="ipython notebook cache",
     url="http://packages.python.org/ipycache",
     py_modules=['ipycache'],
-    long_description=read('README'),
+    long_description=read('README.md'),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
