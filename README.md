@@ -1,6 +1,8 @@
 %%cache cell magic
 ==================
 
+[![Build Status](https://travis-ci.org/rossant/ipycache.svg)](https://travis-ci.org/rossant/ipycache)
+
 Defines a %%cache cell magic in the IPython notebook to cache results and outputs of long-lasting computations in a persistent pickle file. Useful when some computations in a notebook are long and you want to easily save the results in a file.
 
 Example
@@ -42,5 +44,4 @@ Usage
         c.CacheMagics.cachedir = "/path/to/mycache"
   
     If both a default cache directory and the `--cachedir` option are given, the latter is used.
-
 
