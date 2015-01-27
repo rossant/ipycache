@@ -15,8 +15,9 @@ from IPython.config.configurable import Configurable
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 from IPython.utils.traitlets import Unicode
-from IPython.utils.io import capture_output, CapturedIO
-
+from IPython.utils.io import CapturedIO, capture_output
+from IPython.display import clear_output
+from StringIO import StringIO
 
 #------------------------------------------------------------------------------
 # Six utility functions for Python 2/3 compatibility
@@ -136,8 +137,8 @@ def save_vars(path, vars_d):
 #------------------------------------------------------------------------------
 def save_captured_io(io):
     return dict(
-            stdout=io._stdout,
-            stderr=io._stderr,
+            stdout=StringIO(io._stdout.getvalue()),
+            stderr=StringIO(io._stderr.getvalue()),
             outputs=getattr(io, '_outputs', []), # Only IPython master has this
         )
         
@@ -152,6 +153,63 @@ def load_captured_io(captured_io):
                           captured_io.get('stderr', None),
                           )
                             
+class myStringIO(StringIO):
+    """class to simultaneously capture and output"""
+    def __init__(self, out=None, buf=""):
+        self._out=out
+        StringIO.__init__(self,buf=buf)
+    def write(self,s):
+        self._out.write(s)
+        StringIO.write(self,s)
+
+import IPython.utils.io
+class capture_output_and_print(object):
+    """
+    Taken from IPython.utils.io and modified to use myStringIO.
+    context manager for capturing stdout/err
+    """
+    stdout = True
+    stderr = True
+    display = True
+    
+    def __init__(self, stdout=True, stderr=True, display=True):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.display = display
+        self.shell = None
+    
+    def __enter__(self):
+        from IPython.core.getipython import get_ipython
+        from IPython.core.displaypub import CapturingDisplayPublisher
+        
+        self.sys_stdout = sys.stdout
+        self.sys_stderr = sys.stderr
+        
+        if self.display:
+            self.shell = get_ipython()
+            if self.shell is None:
+                self.save_display_pub = None
+                self.display = False
+        
+        stdout = stderr = outputs = None
+        if self.stdout:
+            #stdout = sys.stdout = StringIO()
+            stdout = sys.stdout = myStringIO(out=IPython.utils.io.stdout)
+        if self.stderr:
+            #stderr = sys.stderr = StringIO()
+            stderr = sys.stderr = myStringIO(out=self.sys_stderr)            
+        if self.display:
+            self.save_display_pub = self.shell.display_pub
+            self.shell.display_pub = CapturingDisplayPublisher()
+            outputs = self.shell.display_pub.outputs
+
+        return CapturedIO(stdout, stderr, outputs)
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        sys.stdout = self.sys_stdout
+        sys.stderr = self.sys_stderr
+        if self.display and self.shell:
+            self.shell.display_pub = self.save_display_pub
             
 #------------------------------------------------------------------------------
 # %%cache Magics
@@ -160,7 +218,7 @@ def cache(cell, path, vars=[],
           # HACK: this function implementing the magic's logic is testable
           # without IPython, by giving mock functions here instead of IPython
           # methods.
-          ip_user_ns={}, ip_run_cell=None, ip_push=None,
+          ip_user_ns={}, ip_run_cell=None, ip_push=None, ip_clear_output=lambda : None,
           force=False, read=False, verbose=True):
     
     if not path:
@@ -170,7 +228,7 @@ def cache(cell, path, vars=[],
         
     if do_save(path, force=force, read=read):
         # Capture the outputs of the cell.
-        with capture_output() as io:
+        with capture_output_and_print() as io:
             try:
                 ip_run_cell(cell)
             except:
@@ -190,8 +248,9 @@ def cache(cell, path, vars=[],
         cache['_captured_io'] = save_captured_io(io)
         # Save the cache in the pickle file.
         save_vars(path, cache)
+        ip_clear_output() # clear away the temporary output and replace with the saved output (ideal?)
         if verbose:
-            print("[Saved variables {0:s} to file '{1:s}'.]".format(
+            print("[Saved variables '{0:s}' to file '{1:s}'.]".format(
                 ', '.join(vars), path))
         
     # If the cache file exists, and no --force mode, load the requested 
@@ -206,9 +265,11 @@ def cache(cell, path, vars=[],
         if verbose:
             print(("[Skipped the cell's code and loaded variables {0:s} "
                    "from file '{1:s}'.]").format(', '.join(vars), path))
+
     # Display the outputs, whether they come from the cell's execution
     # or the pickle file.
-    io()
+    io() # output is only printed when loading file    
+
         
     
 @magics_class
@@ -290,6 +351,7 @@ class CacheMagics(Magics, Configurable):
               ip_user_ns=ip.user_ns, 
               ip_run_cell=ip.run_cell,
               ip_push=ip.push,
+              ip_clear_output=clear_output
               )
 
 def load_ipython_extension(ip):
