@@ -8,7 +8,7 @@ long-lasting computations.
 #------------------------------------------------------------------------------
 
 # Stdlib
-import inspect, os, sys, textwrap, cPickle, re
+import inspect, os, sys, textwrap, re
 
 # Our own
 from IPython.config.configurable import Configurable
@@ -27,10 +27,14 @@ PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
 if PY3:
+    import pickle
+
     _iteritems = "items"
     
     exec_ = getattr(moves.builtins, "exec")
 else:
+    import cPickle as pickle 
+
     _iteritems = "iteritems"
     
     def exec_(_code_, _globs_=None, _locs_=None):
@@ -100,7 +104,7 @@ def load_vars(path, vars):
     with open(path, 'rb') as f:
         # Load the variables from the cache.
         try:
-            cache = cPickle.load(f)
+            cache = pickle.load(f)
         except EOFError as e:
             raise IOError(e.message)
         
@@ -124,7 +128,7 @@ def save_vars(path, vars_d):
     
     """
     with open(path, 'wb') as f:
-        cPickle.dump(vars_d, f)
+        pickle.dump(vars_d, f)
     
     
 #------------------------------------------------------------------------------
