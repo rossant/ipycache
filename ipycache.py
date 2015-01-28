@@ -29,7 +29,7 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     _iteritems = "items"
     
-    exec_ = getattr(moves.builtins, "exec")
+    exec_ = builtins.exec
 else:
     _iteritems = "iteritems"
     
