@@ -10,3 +10,5 @@ install:
 script:  
   - nosetests 
   - python ipynb_runner.py -v -s examples/example.ipynb
+  - python ipynb_runner.py -v -s examples/example_outputs.ipynb
+  - python ipynb_runner.py -v -s examples/capture_output.ipynb
