@@ -9,4 +9,4 @@ install:
 # command to run tests, e.g. python setup.py test
 script:  
   - nosetests 
-  - python ipynb_runner.py -v -s example.ipynb
+  - python ipynb_runner.py -v -s examples/example.ipynb
