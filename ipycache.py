@@ -31,7 +31,7 @@ if PY3:
     
     _iteritems = "items"
     
-    exec_ = builtins.exec
+    exec_ = getattr(builtins, "exec")
 else:
     import cPickle as pickle
     
