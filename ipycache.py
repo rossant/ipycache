@@ -157,7 +157,7 @@ class myStringIO(StringIO):
     """class to simultaneously capture and output"""
     def __init__(self, out=None, buf=""):
         self._out=out
-        StringIO.__init__(self,buf=buf)
+        StringIO.__init__(self,buf)
     def write(self,s):
         self._out.write(s)
         StringIO.write(self,s)
