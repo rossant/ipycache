@@ -17,7 +17,7 @@ from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 from IPython.utils.traitlets import Unicode
 from IPython.utils.io import CapturedIO, capture_output
 from IPython.display import clear_output
-from StringIO import StringIO
+
 
 #------------------------------------------------------------------------------
 # Six utility functions for Python 2/3 compatibility
@@ -29,13 +29,15 @@ PY3 = sys.version_info[0] == 3
 
 if PY3:
     import pickle, builtins
+    from io import StringIO
     _iteritems = "items"
     
     exec_ = getattr(builtins, "exec")
 else:
     import cPickle as pickle
+    from StringIO import StringIO        
     _iteritems = "iteritems"
-    
+
     def exec_(_code_, _globs_=None, _locs_=None):
         """Execute code in a namespace."""
         if _globs_ is None:
