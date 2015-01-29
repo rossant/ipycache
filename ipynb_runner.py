@@ -1,10 +1,11 @@
 """
 Script for running ipython notebooks.
 """
+from __future__ import print_function
 from IPython.nbformat.current import read
 from IPython.kernel import KernelManager
 import argparse
-from pprint import pprint
+#from pprint import pprint
 import sys
 
 def get_ncells(nb):
@@ -35,7 +36,7 @@ notebook = '{name}{ext}'.format(name=args.notebook, ext=''
                                 if '.' in args.notebook else '.ipynb')
 
 if args.verbose:
-    print 'Checking: {}'.format(notebook)
+    print('Checking: {}'.format(notebook))
 
 nb = read(open(notebook), 'json')
 
@@ -57,34 +58,34 @@ for ws in nb.worksheets:
     for cell in ws.cells:
         if cell.cell_type == 'code':
             if args.verbose:
-                print "Cell:%i/%i> "%(icell,ncells),
+                print("Cell:%i/%i> "%(icell,ncells), end=" ")
             icell+=1
             shell.execute(cell.input)
             msg=shell.get_msg()
             status=msg['content']['status']            
             if args.verbose:
-                print status
+                print( status )
             if status=='ok':
                 nsucc+=1
                 continue
             nerrors+=1
             if args.verbose:
-                print "="*80
-                print msg['content']['ename'], ":", msg['content']['evalue']
-                print "{0:-^80}".format("<CODE>")
-                print cell.input
-                print "{0:-^80}".format("</CODE>")            
+                print( "="*80 )
+                print( msg['content']['ename'], ":", msg['content']['evalue'] )
+                print( "{0:-^80}".format("<CODE>") )
+                print( cell.input )
+                print( "{0:-^80}".format("</CODE>") )
                 for m in msg['content']['traceback']:
-                    print m
-                print "="*80
+                    print( m )
+                print( "="*80 )
             if args.break_at_error:
                 break
             
 if args.summary:
-    print "{0:#^80}".format(" Summary: %s "%args.notebook)
-    print "Num Errors   : ", nerrors
-    print "Num Successes: ", nsucc
-    print "Num Cells    :  ", ncells
+    print( "{0:#^80}".format(" Summary: %s "%args.notebook) )
+    print( "Num Errors   : ", nerrors )
+    print(  "Num Successes: ", nsucc )
+    print( "Num Cells    :  ", ncells )
     
             
 # kernel cleanup
