@@ -5,6 +5,10 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
   - pip install -r requirements.txt --use-mirrors
+  - pip install -r test_requirements.txt --use-mirrors
 # command to run tests, e.g. python setup.py test
 script:  
   - nosetests 
+  - python ipynb_runner.py -v -s examples/example.ipynb
+  - python ipynb_runner.py -v -s examples/example_outputs.ipynb
+  - python ipynb_runner.py -v -s examples/capture_output.ipynb
