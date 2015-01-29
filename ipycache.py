@@ -28,14 +28,12 @@ PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
 if PY3:
-    import pickle
-
+    import pickle, builtins
     _iteritems = "items"
     
-    exec_ = getattr(moves.builtins, "exec")
+    exec_ = getattr(builtins, "exec")
 else:
-    import cPickle as pickle 
-
+    import cPickle as pickle
     _iteritems = "iteritems"
     
     def exec_(_code_, _globs_=None, _locs_=None):
@@ -90,7 +88,7 @@ def do_save(path, force=False, read=False):
     return force or (not read and not os.path.exists(path))
     
 def load_vars(path, vars):
-    """Load variables from a cPickle file.
+    """Load variables from a pickle file.
     
     Arguments:
     
@@ -120,7 +118,7 @@ def load_vars(path, vars):
         return cache
 
 def save_vars(path, vars_d):
-    """Save variables into a cPickle file.
+    """Save variables into a pickle file.
     
     Arguments:
     

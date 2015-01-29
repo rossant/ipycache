@@ -7,7 +7,15 @@
 #------------------------------------------------------------------------------
 import os
 import sys
-from cStringIO import StringIO
+
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+
+if PY2:
+    from cStringIO import StringIO
+else:
+    from io import StringIO
+    
 from nose.tools import raises, assert_raises
 from ipycache import (save_vars, load_vars, clean_var, clean_vars, do_save, 
     cache, exec_, conditional_eval)
