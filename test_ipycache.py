@@ -19,6 +19,8 @@ else:
 from nose.tools import raises, assert_raises
 from ipycache import (save_vars, load_vars, clean_var, clean_vars, do_save, 
     cache, exec_, conditional_eval)
+import hashlib
+import pickle
 
 
 #------------------------------------------------------------------------------
@@ -94,11 +96,35 @@ def test_cache_1():
     # We modify the variable in the namespace,
     user_ns['a'] = 2
     # and execute the cell again. The value should be loaded from the pickle
-    # file.
-    cache("""a = 2""", path, vars=['a'], force=False, read=False,
+    # file. Note how we did not change cell contents
+    cache("""a = 1""", path, vars=['a'], force=False, read=False,
           ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
     assert user_ns['a'] == 1
-    
+
+    # changing  the cell will trigger reload
+    # file. Note how we did not change cell contents
+    cache("""a = 2""", path, vars=['a'], force=False, read=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 2
+     
+    #store 1 again
+    user_ns['a'] = 1 
+    cache("""a = 1""", path, vars=['a'], force=False, read=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    #hack the md5 so code change does not retrigger
+    with open(path) as op:
+        data = pickle.load(op)
+    data['_cell_md5'] = hashlib.md5("""a = 2""").hexdigest()
+    with open(path, 'w') as op:
+        pickle.dump(data, op)
+    #ensure we don't rerun
+    user_ns['a'] = 2
+    # and execute the cell again. The value should be loaded from the pickle
+    # file. Note how we did not change cell contents
+    cache("""a = 1""", path, vars=['a'], force=False, read=False,
+          ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
+    assert user_ns['a'] == 1
+
     # Now, we force the cell's execution.
     cache("""a = 2""", path, vars=['a'], force=True, read=False,
           ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)

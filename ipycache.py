@@ -275,15 +275,15 @@ def cache(cell, path, vars=[],
             cached = load_vars(path, vars)
         except ValueError as e:
             if 'The following variables' in str(e):
+                if read:
+                    raise
                 force_recalc = True
             else:
                 raise
             cached = {}
         if not '_cell_md5' in cached or cell_md5 != cached['_cell_md5']:
             force_recalc = True
-        if force_recalc:
-            # This will lead to an Exception if read is True - which is good, because it allows you
-            # to manually rescue your cache file if you must.
+        if force_recalc and not read:
             return cache(cell, path, vars, ip_user_ns, ip_run_cell, ip_push, ip_clear_output, True, read, verbose)
         # Handle the outputs separately.
         io = load_captured_io(cached.get('_captured_io', {}))
