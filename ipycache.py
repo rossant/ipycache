@@ -17,6 +17,7 @@ from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 from IPython.utils.traitlets import Unicode
 from IPython.utils.io import CapturedIO, capture_output
 from IPython.display import clear_output
+import hashlib
 
 
 #------------------------------------------------------------------------------
@@ -117,7 +118,11 @@ def load_vars(path, vars):
                 "from the cache: {0:s}").format(
                 ', '.join(["'{0:s}'".format(var) for var in missing_vars])))
         additional_vars = sorted(set(cache.keys()) - set(vars))
-        additional_vars.remove('_captured_io')
+        for hidden_variable in '_captured_io', '_cell_md5':
+            try:
+                additional_vars.remove(hidden_variable)
+            except ValueError:
+                pass
         if additional_vars:
             raise ValueError("The following variables were present in the cache, "
                     "but removed from the storage request: {0:s}".format(
@@ -231,6 +236,7 @@ def cache(cell, path, vars=[],
         raise ValueError("The path needs to be specified as a first argument.")
     
     path = os.path.abspath(path)
+    cell_md5 = hashlib.md5(cell).hexdigest()
         
     if do_save(path, force=force, read=read):
         # Capture the outputs of the cell.
@@ -252,6 +258,7 @@ def cache(cell, path, vars=[],
                               "interactive namespace").format(vars_missing_str))
         # Save the outputs in the cache.
         cached['_captured_io'] = save_captured_io(io)
+        cached['_cell_md5'] = cell_md5
         # Save the cache in the pickle file.
         save_vars(path, cached)
         ip_clear_output() # clear away the temporary output and replace with the saved output (ideal?)
@@ -263,16 +270,21 @@ def cache(cell, path, vars=[],
     # variables from the specified file into the interactive namespace.
     else:
         # Load the variables from cache in inject them in the namespace.
+        force_recalc = False
         try:
             cached = load_vars(path, vars)
         except ValueError as e:
             if 'The following variables' in str(e):
-                print ("unlinked cache file")
-                os.unlink(path)
-                return cache(cell, path, vars, ip_user_ns, ip_run_cell, ip_push, ip_clear_output, force, read, verbose)
+                force_recalc = True
             else:
                 raise
-
+            cached = {}
+        if not '_cell_md5' in cached or cell_md5 != cached['_cell_md5']:
+            force_recalc = True
+        if force_recalc:
+            # This will lead to an Exception if read is True - which is good, because it allows you
+            # to manually rescue your cache file if you must.
+            return cache(cell, path, vars, ip_user_ns, ip_run_cell, ip_push, ip_clear_output, True, read, verbose)
         # Handle the outputs separately.
         io = load_captured_io(cached.get('_captured_io', {}))
         # Push the remaining variables in the namespace.
