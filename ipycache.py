@@ -116,6 +116,12 @@ def load_vars(path, vars):
             raise ValueError(("The following variables could not be loaded "
                 "from the cache: {0:s}").format(
                 ', '.join(["'{0:s}'".format(var) for var in missing_vars])))
+        additional_vars = sorted(set(cache.keys()) - set(vars))
+        additional_vars.remove('_captured_io')
+        if additional_vars:
+            raise ValueError("The following variables were present in the cache, "
+                    "but removed from the storage request: {0:s}".format(
+                ', '.join(["'{0:s}'".format(var) for var in additional_vars])))
         
         return cache
 
@@ -237,7 +243,7 @@ def cache(cell, path, vars=[],
                 return
         # Create the cache from the namespace.
         try:
-            cache = {var: ip_user_ns[var] for var in vars}
+            cached = {var: ip_user_ns[var] for var in vars}
         except KeyError:
             vars_missing = set(vars) - set(ip_user_ns.keys())
             vars_missing_str = ', '.join(["'{0:s}'".format(_) 
@@ -245,9 +251,9 @@ def cache(cell, path, vars=[],
             raise ValueError(("Variable(s) {0:s} could not be found in the "
                               "interactive namespace").format(vars_missing_str))
         # Save the outputs in the cache.
-        cache['_captured_io'] = save_captured_io(io)
+        cached['_captured_io'] = save_captured_io(io)
         # Save the cache in the pickle file.
-        save_vars(path, cache)
+        save_vars(path, cached)
         ip_clear_output() # clear away the temporary output and replace with the saved output (ideal?)
         if verbose:
             print("[Saved variables '{0:s}' to file '{1:s}'.]".format(
@@ -257,11 +263,20 @@ def cache(cell, path, vars=[],
     # variables from the specified file into the interactive namespace.
     else:
         # Load the variables from cache in inject them in the namespace.
-        cache = load_vars(path, vars)
+        try:
+            cached = load_vars(path, vars)
+        except ValueError as e:
+            if 'The following variables' in str(e):
+                print ("unlinked cache file")
+                os.unlink(path)
+                return cache(cell, path, vars, ip_user_ns, ip_run_cell, ip_push, ip_clear_output, force, read, verbose)
+            else:
+                raise
+
         # Handle the outputs separately.
-        io = load_captured_io(cache.get('_captured_io', {}))
+        io = load_captured_io(cached.get('_captured_io', {}))
         # Push the remaining variables in the namespace.
-        ip_push(cache)
+        ip_push(cached)
         if verbose:
             print(("[Skipped the cell's code and loaded variables {0:s} "
                    "from file '{1:s}'.]").format(', '.join(vars), path))
