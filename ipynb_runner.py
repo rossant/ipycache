@@ -45,6 +45,7 @@ km = KernelManager()
 km.start_kernel()
 kc = km.client()
 kc.start_channels()
+kc.wait_for_ready()
 shell=kc.shell_channel
 
 ncells=get_ncells(nb)
@@ -60,8 +61,8 @@ for ws in nb.worksheets:
             if args.verbose:
                 print("Cell:%i/%i> "%(icell,ncells), end=" ")
             icell+=1
-            shell.execute(cell.input)
-            msg=shell.get_msg()
+            kc.execute(cell.input)
+            msg=kc.get_shell_msg()
             status=msg['content']['status']            
             if args.verbose:
                 print( status )
