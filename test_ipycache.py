@@ -112,10 +112,10 @@ def test_cache_1():
     cache("""a = 1""", path, vars=['a'], force=False, read=False,
           ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
     #hack the md5 so code change does not retrigger
-    with open(path) as op:
+    with open(path, 'rb') as op:
         data = pickle.load(op)
-    data['_cell_md5'] = hashlib.md5("""a = 2""").hexdigest()
-    with open(path, 'w') as op:
+    data['_cell_md5'] = hashlib.md5("""a = 2""".encode()).hexdigest()
+    with open(path, 'wb') as op:
         pickle.dump(data, op)
     #ensure we don't rerun
     user_ns['a'] = 2
@@ -154,7 +154,7 @@ def test_cache_exception():
     cache(cell, path, vars=['a'], force=False, read=False,
           ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
     assert user_ns['a'] == 1
-    
+
     assert not os.path.exists(path), os.remove(path)
     
 def test_cache_outputs():
