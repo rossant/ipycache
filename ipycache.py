@@ -17,6 +17,7 @@ from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 from IPython.utils.traitlets import Unicode
 from IPython.utils.io import CapturedIO, capture_output
 from IPython.display import clear_output
+import hashlib
 
 
 #------------------------------------------------------------------------------
@@ -116,6 +117,16 @@ def load_vars(path, vars):
             raise ValueError(("The following variables could not be loaded "
                 "from the cache: {0:s}").format(
                 ', '.join(["'{0:s}'".format(var) for var in missing_vars])))
+        additional_vars = sorted(set(cache.keys()) - set(vars))
+        for hidden_variable in '_captured_io', '_cell_md5':
+            try:
+                additional_vars.remove(hidden_variable)
+            except ValueError:
+                pass
+        if additional_vars:
+            raise ValueError("The following variables were present in the cache, "
+                    "but removed from the storage request: {0:s}".format(
+                ', '.join(["'{0:s}'".format(var) for var in additional_vars])))
         
         return cache
 
@@ -225,6 +236,7 @@ def cache(cell, path, vars=[],
         raise ValueError("The path needs to be specified as a first argument.")
     
     path = os.path.abspath(path)
+    cell_md5 = hashlib.md5(cell).hexdigest()
         
     if do_save(path, force=force, read=read):
         # Capture the outputs of the cell.
@@ -237,7 +249,7 @@ def cache(cell, path, vars=[],
                 return
         # Create the cache from the namespace.
         try:
-            cache = {var: ip_user_ns[var] for var in vars}
+            cached = {var: ip_user_ns[var] for var in vars}
         except KeyError:
             vars_missing = set(vars) - set(ip_user_ns.keys())
             vars_missing_str = ', '.join(["'{0:s}'".format(_) 
@@ -245,9 +257,10 @@ def cache(cell, path, vars=[],
             raise ValueError(("Variable(s) {0:s} could not be found in the "
                               "interactive namespace").format(vars_missing_str))
         # Save the outputs in the cache.
-        cache['_captured_io'] = save_captured_io(io)
+        cached['_captured_io'] = save_captured_io(io)
+        cached['_cell_md5'] = cell_md5
         # Save the cache in the pickle file.
-        save_vars(path, cache)
+        save_vars(path, cached)
         ip_clear_output() # clear away the temporary output and replace with the saved output (ideal?)
         if verbose:
             print("[Saved variables '{0:s}' to file '{1:s}'.]".format(
@@ -257,11 +270,25 @@ def cache(cell, path, vars=[],
     # variables from the specified file into the interactive namespace.
     else:
         # Load the variables from cache in inject them in the namespace.
-        cache = load_vars(path, vars)
+        force_recalc = False
+        try:
+            cached = load_vars(path, vars)
+        except ValueError as e:
+            if 'The following variables' in str(e):
+                if read:
+                    raise
+                force_recalc = True
+            else:
+                raise
+            cached = {}
+        if not '_cell_md5' in cached or cell_md5 != cached['_cell_md5']:
+            force_recalc = True
+        if force_recalc and not read:
+            return cache(cell, path, vars, ip_user_ns, ip_run_cell, ip_push, ip_clear_output, True, read, verbose)
         # Handle the outputs separately.
-        io = load_captured_io(cache.get('_captured_io', {}))
+        io = load_captured_io(cached.get('_captured_io', {}))
         # Push the remaining variables in the namespace.
-        ip_push(cache)
+        ip_push(cached)
         if verbose:
             print(("[Skipped the cell's code and loaded variables {0:s} "
                    "from file '{1:s}'.]").format(', '.join(vars), path))
