@@ -108,7 +108,8 @@ def load_vars(path, vars):
         try:
             cache = pickle.load(f)
         except EOFError as e:
-            raise IOError(e.message)
+            cache={}
+            #raise IOError(str(e))
         
         # Check that all requested variables could be loaded successfully
         # from the cache.
@@ -222,7 +223,7 @@ class capture_output_and_print(object):
         if self.display and self.shell:
             self.shell.display_pub = self.save_display_pub
             
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # %%cache Magics
 #------------------------------------------------------------------------------
 def cache(cell, path, vars=[],
@@ -236,7 +237,7 @@ def cache(cell, path, vars=[],
         raise ValueError("The path needs to be specified as a first argument.")
     
     path = os.path.abspath(path)
-    cell_md5 = hashlib.md5(cell).hexdigest()
+    cell_md5 = hashlib.md5(cell.encode()).hexdigest()
         
     if do_save(path, force=force, read=read):
         # Capture the outputs of the cell.
