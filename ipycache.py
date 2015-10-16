@@ -19,8 +19,8 @@ from IPython.utils.io import CapturedIO, capture_output
 from IPython.display import clear_output
 import hashlib
 
-# dill
-import dill
+# cloudpickle
+import cloudpickle
 
 #------------------------------------------------------------------------------
 # Six utility functions for Python 2/3 compatibility
@@ -37,7 +37,7 @@ if PY3:
     
     exec_ = getattr(builtins, "exec")
 else:
-    import cloudpickle as pickle
+    import pickle
     from StringIO import StringIO        
     _iteritems = "iteritems"
 
@@ -143,7 +143,10 @@ def save_vars(path, vars_d):
     
     """
     with open(path, 'wb') as f:
-        pickle.dump(vars_d, f)
+        try:
+            pickle.dump(vars_d, f)
+        except:
+            cloudpickle.dump(vars_d, f)
     
     
 #------------------------------------------------------------------------------
