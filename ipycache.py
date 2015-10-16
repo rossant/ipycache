@@ -37,7 +37,7 @@ if PY3:
     
     exec_ = getattr(builtins, "exec")
 else:
-    import cPickle as pickle
+    import cloudpickle as pickle
     from StringIO import StringIO        
     _iteritems = "iteritems"
 
