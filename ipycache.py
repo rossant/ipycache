@@ -19,6 +19,8 @@ from IPython.utils.io import CapturedIO, capture_output
 from IPython.display import clear_output
 import hashlib
 
+# dill
+import dill
 
 #------------------------------------------------------------------------------
 # Six utility functions for Python 2/3 compatibility
