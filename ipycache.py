@@ -36,7 +36,7 @@ if PY3:
     
     exec_ = getattr(builtins, "exec")
 else:
-    import pickle
+    import cPickle as pickle
     # cloudpickle
     import imp
     try:
