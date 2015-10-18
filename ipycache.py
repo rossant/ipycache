@@ -20,7 +20,6 @@ from IPython.display import clear_output
 import hashlib
 
 
-
 #------------------------------------------------------------------------------
 # Six utility functions for Python 2/3 compatibility
 #------------------------------------------------------------------------------
