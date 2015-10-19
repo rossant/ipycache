@@ -36,16 +36,6 @@ if PY3:
     exec_ = getattr(builtins, "exec")
 else:
     import cPickle as pickle
-    # cloudpickle
-    import imp
-    try:
-        imp.find_module('cloudpickle')
-        foundcloudpickle = True
-    except ImportError:
-        foundcloudpickle = False
-    if foundcloudpickle:
-        import cloudpickle
-        
     from StringIO import StringIO        
     _iteritems = "iteritems"
 
@@ -151,11 +141,7 @@ def save_vars(path, vars_d):
     
     """
     with open(path, 'wb') as f:
-        if foundcloudpickle:
-            cloudpickle.dump(vars_d, f)
-        else:
-            pickle.dump(vars_d, f)
-            
+        pickle.dump(vars_d, f)
     
     
 #------------------------------------------------------------------------------
