@@ -55,6 +55,15 @@ def iteritems(d, **kw):
     """Return an iterator over the (key, value) pairs of a dictionary."""
     return iter(getattr(d, _iteritems)(**kw))
 
+#------------------------------------------------------------------------------
+# cloudpickle 
+#------------------------------------------------------------------------------
+
+try:
+   import cloudpickle
+   dump = cloudpickle.dump
+except ImportError:
+   dump = pickle.dump
 
 #------------------------------------------------------------------------------
 # Functions
@@ -141,7 +150,7 @@ def save_vars(path, vars_d):
     
     """
     with open(path, 'wb') as f:
-        pickle.dump(vars_d, f)
+        dump(vars_d, f)
     
     
 #------------------------------------------------------------------------------
