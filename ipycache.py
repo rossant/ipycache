@@ -261,6 +261,16 @@ def cache(cell, path, vars=[],
     path = os.path.abspath(path)
     cell_md5 = hashlib.md5(cell.encode()).hexdigest()
 
+    # infer storage backend from path if None
+    if backend is None:
+        # try to guess, but default is pickle
+        if path.endswith('.pkl') or path.endswith('.pickle'):
+            backend = 'pkl'
+        elif path.endswith('.pkl.gz') or path.endswith('.pickle.gz'):
+            backend = 'pkl.gz'
+        else:
+            backend = 'pkl'
+
     if do_save(path, force=force, read=read):
         # Capture the outputs of the cell.
         with capture_output_and_print() as io:
@@ -307,7 +317,7 @@ def cache(cell, path, vars=[],
         if not '_cell_md5' in cached or cell_md5 != cached['_cell_md5']:
             force_recalc = True
         if force_recalc and not read:
-            return cache(cell, path, vars, ip_user_ns, ip_run_cell, ip_push, ip_clear_output, True, read, verbose)
+            return cache(cell, path, vars, ip_user_ns, ip_run_cell, ip_push, ip_clear_output, True, read, verbose, backend=backend)
         # Handle the outputs separately.
         io = load_captured_io(cached.get('_captured_io', {}))
         # Push the remaining variables in the namespace.
@@ -399,21 +409,10 @@ class CacheMagics(Magics, Configurable):
                 except:
                     pass
             path = os.path.join(cachedir, path)
-        # infer storage backend from path if None
-        if args.backend is None:
-            # try to guess, but default is pickle
-            if path.endswith('.pkl') or path.endswith('.pickle'):
-                backend = 'pkl'
-            elif path.endswith('.pkl.gz') or path.endswith('.pickle.gz'):
-                backend = 'pkl.gz'
-            else:
-                backend = 'pkl'
-        else:
-            backend = args.backend
 
         cache(cell, path, vars=vars,
               force=args.force, verbose=not args.silent, read=args.read,
-              backend=backend,
+              backend=args.backend,
               # IPython methods
               ip_user_ns=ip.user_ns,
               ip_run_cell=ip.run_cell,
