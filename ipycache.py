@@ -159,7 +159,6 @@ def save_vars(path, vars_d, backend='pkl'):
     """
     if backend=='pkl':
         with open(path, 'wb') as f:
-            print vars_d
             pickle.dump(vars_d, f)
     elif backend=='pkl.gz':
         with gzip.open(path, 'wb') as f:
