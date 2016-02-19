@@ -100,7 +100,7 @@ def do_save(path, force=False, read=False):
     # Execute the cell and save the variables.
     return force or (not read and not os.path.exists(path))
 
-def load_vars(path, vars, backend):
+def load_vars(path, vars, backend='pkl'):
     """Load variables from a file.
 
     Arguments:
@@ -148,7 +148,7 @@ def load_vars(path, vars, backend):
     else:
         raise ValueError('Unknown storage backend {0}'.format(backend))
 
-def save_vars(path, vars_d, backend):
+def save_vars(path, vars_d, backend='pkl'):
     """Save variables into a pickle file.
 
     Arguments:
