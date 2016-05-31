@@ -15,7 +15,7 @@ Installation
 ------------
 
   * `pip install ipycache`
-  
+  * `pip install git+https://github.com/rossant/ipycache.git` (for the latest development version)
   
 Usage
 -----
