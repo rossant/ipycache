@@ -45,3 +45,4 @@ Usage
   
     If both a default cache directory and the `--cachedir` option are given, the latter is used.
 
+ * Both raw and gzipped pickles are supported. Gzipped pickles are enabled when the filename end on pkl.gz. Gzipped pickles are also enable by specifing --backend pkl.gz
