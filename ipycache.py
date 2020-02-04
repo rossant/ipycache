@@ -7,18 +7,20 @@ long-lasting computations.
 # Imports
 #------------------------------------------------------------------------------
 
+import hashlib
 # Stdlib
-import inspect, os, sys, textwrap, re
+import io
+import os
+import re
+import sys
 
 # Our own
 from IPython.config.configurable import Configurable
 from IPython.core import magic_arguments
-from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
-from IPython.utils.traitlets import Unicode
-from IPython.utils.io import CapturedIO, capture_output
+from IPython.core.magic import Magics, magics_class, cell_magic
 from IPython.display import clear_output
-import hashlib
-
+from IPython.utils.io import CapturedIO
+from IPython.utils.traitlets import Unicode
 
 #------------------------------------------------------------------------------
 # Six utility functions for Python 2/3 compatibility
@@ -115,6 +117,7 @@ def load_vars(path, vars):
     with open(path, 'rb') as f:
         # Load the variables from the cache.
         try:
+            restricted_loads(f.read())
             cache = pickle.load(f)
         except EOFError as e:
             cache={}
@@ -151,8 +154,26 @@ def save_vars(path, vars_d):
     """
     with open(path, 'wb') as f:
         dump(vars_d, f)
-    
-    
+
+
+# ------------------------------------------------------------------------------
+# RestrictedUnpickler - For mitigating arbitrary code execution while unpickling
+# This function provides restriction of using only the io module
+# ------------------------------------------------------------------------------
+class RestrictedUnpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        if module == '_io' and name == 'StringIO':
+            return getattr(sys.modules[module], name)
+        # Forbid everything else.
+        raise pickle.UnpicklingError("global '%s.%s' is forbidden" %
+                                     (module, name))
+
+
+def restricted_loads(s):
+    """Helper function analogous to pickle.loads()."""
+    return RestrictedUnpickler(io.BytesIO(s)).load()
+
 #------------------------------------------------------------------------------
 # CapturedIO
 #------------------------------------------------------------------------------
