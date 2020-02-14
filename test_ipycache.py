@@ -220,4 +220,8 @@ def test_load_exploitPickle():
     path = "malicious.pkl"
     with open("malicious.pkl", "wb") as f:
         pickle.dump(payload, f)
+
+    # Check that the cache read raises an UnpicklingError exception
     assert_raises(pickle.UnpicklingError, load_vars, path, ['a'])
+
+    os.remove(path)

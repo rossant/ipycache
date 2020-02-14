@@ -158,14 +158,21 @@ def save_vars(path, vars_d):
 # This function provides restriction of using only the io module
 # ------------------------------------------------------------------------------
 class RestrictedUnpickler(pickle.Unpickler):
+    safe_modules = {
+        '_io',
+        'builtins'
+    }
+
+    safe_builtins = {
+        'StringIO'
+    }
 
     def find_class(self, module, name):
-        if module == '_io' and name == 'StringIO':
+        if module in self.safe_modules and name in self.safe_builtins:
             return getattr(sys.modules[module], name)
         # Forbid everything else.
         raise pickle.UnpicklingError("global '%s.%s' is forbidden" %
                                      (module, name))
-
 
 def restricted_loads(s):
     """Helper function analogous to pickle.loads()."""
