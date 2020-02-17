@@ -206,3 +206,22 @@ def test_cache_fail_1():
           ip_user_ns=user_ns, ip_run_cell=ip_run_cell, ip_push=ip_push)
     
     os.remove(path)
+
+
+def test_load_exploitPickle():
+    class vulnLoad():
+        def __init__(self):
+            self.a = 1
+
+        def __reduce__(self):
+            return (os.system, ('uname -a',))
+
+    payload = vulnLoad()
+    path = "malicious.pkl"
+    with open("malicious.pkl", "wb") as f:
+        pickle.dump(payload, f)
+
+    # Check that the cache read raises an UnpicklingError exception
+    assert_raises(pickle.UnpicklingError, load_vars, path, ['a'])
+
+    os.remove(path)

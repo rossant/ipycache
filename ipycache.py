@@ -19,7 +19,6 @@ from IPython.utils.io import CapturedIO, capture_output
 from IPython.display import clear_output
 import hashlib
 
-
 #------------------------------------------------------------------------------
 # Six utility functions for Python 2/3 compatibility
 #------------------------------------------------------------------------------
@@ -115,6 +114,7 @@ def load_vars(path, vars):
     with open(path, 'rb') as f:
         # Load the variables from the cache.
         try:
+            restricted_loads(f.read())
             cache = pickle.load(f)
         except EOFError as e:
             cache={}
@@ -151,8 +151,33 @@ def save_vars(path, vars_d):
     """
     with open(path, 'wb') as f:
         dump(vars_d, f)
-    
-    
+
+
+# ------------------------------------------------------------------------------
+# RestrictedUnpickler - For mitigating arbitrary code execution while unpickling
+# This function provides restriction of using only the io module
+# ------------------------------------------------------------------------------
+class RestrictedUnpickler(pickle.Unpickler):
+    safe_modules = {
+        '_io',
+        'builtins'
+    }
+
+    safe_builtins = {
+        'StringIO'
+    }
+
+    def find_class(self, module, name):
+        if module in self.safe_modules and name in self.safe_builtins:
+            return getattr(sys.modules[module], name)
+        # Forbid everything else.
+        raise pickle.UnpicklingError("global '%s.%s' is forbidden" %
+                                     (module, name))
+
+def restricted_loads(s):
+    """Helper function analogous to pickle.loads()."""
+    return RestrictedUnpickler(io.BytesIO(s)).load()
+
 #------------------------------------------------------------------------------
 # CapturedIO
 #------------------------------------------------------------------------------
