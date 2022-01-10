@@ -1,0 +1,38 @@
+name: "Run tests"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  run-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ 'ubuntu-20.04', 'macos-10.15', 'macos-11' ]
+        python: [ '2.7', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10' ]
+    name: Python ${{ matrix.python }} (${{ matrix.os }})
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt --use-mirrors
+          pip install -r test_requirements.txt --use-mirrors
+
+      - name: Run tests
+        run: |
+          nosetests
+          python ipynb_runner.py -v -s examples/example.ipynb
+          python ipynb_runner.py -v -s examples/example_outputs.ipynb
+          # Removed in https://github.com/rossant/ipycache/commit/632b7732622239cf363e3606f694735818ec6cc6
+          # when this was using Travis CI; need to look into whether this needs to be re-enabled or removed.
+          # python ipynb_runner.py -v -s examples/capture_output.ipynb
