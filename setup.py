@@ -21,6 +21,7 @@ setup(
     url="http://packages.python.org/ipycache",
     py_modules=['ipycache'],
     long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
