@@ -40,6 +40,7 @@ jobs:
       - name: Run tests
         run: |
           nosetests
+          python setup.py check --metadata --strict
           python ipynb_runner.py -v -s examples/example.ipynb
           python ipynb_runner.py -v -s examples/example_outputs.ipynb
           # Removed in https://github.com/rossant/ipycache/commit/632b7732622239cf363e3606f694735818ec6cc6
