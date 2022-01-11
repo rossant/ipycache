@@ -13,12 +13,12 @@ setup(
     version="0.1.5dev",
     author="Cyrille Rossant",
     author_email="rossant@github",
-    description=(("Defines a %%cache cell magic in the IPython notebook to "
-                   "cache results of long-lasting computations in a persistent"
-                   "pickle file.")),
+    description=("Defines a %%cache cell magic in the IPython notebook to "
+                 "cache results of long-lasting computations in a persistent "
+                 "pickle file."),
     license="BSD",
     keywords="ipython notebook cache",
-    url="http://packages.python.org/ipycache",
+    url="https://github.com/rossant/ipycache",
     py_modules=['ipycache'],
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
