@@ -2,8 +2,8 @@
 Script for running ipython notebooks.
 """
 from __future__ import print_function
-from IPython.nbformat.current import read
-from IPython.kernel import KernelManager
+from nbformat import read
+from jupyter_client.manager import KernelManager
 import argparse
 #from pprint import pprint
 import sys
@@ -38,7 +38,7 @@ notebook = '{name}{ext}'.format(name=args.notebook, ext=''
 if args.verbose:
     print('Checking: {}'.format(notebook))
 
-nb = read(open(notebook), 'json')
+nb = read(open(notebook), as_version=3)
 
 # starting up kernel
 km = KernelManager()
