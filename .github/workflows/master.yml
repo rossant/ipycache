@@ -39,7 +39,7 @@ jobs:
 
       - name: Run tests
         run: |
-          nosetests
+          nose2 -v --pretty-assert
           python setup.py check --metadata --strict
           python ipynb_runner.py -v -s examples/example.ipynb
           python ipynb_runner.py -v -s examples/example_outputs.ipynb
