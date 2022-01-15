@@ -16,7 +16,7 @@ setup(
     description=("Defines a %%cache cell magic in the IPython notebook to "
                  "cache results of long-lasting computations in a persistent "
                  "pickle file."),
-    license="BSD",
+    license="BSD-3-Clause",
     keywords="ipython notebook cache",
     url="https://github.com/rossant/ipycache",
     py_modules=['ipycache'],
