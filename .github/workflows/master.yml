@@ -20,7 +20,7 @@ jobs:
         # Per https://github.com/nose-devs/nose/issues/1099, nose is no longer
         # maintained and so this will not be fixed; we need to migrate to either
         # nose2 or pytest, per the discussion on the above issue.
-        python: [ '3.7', '3.8', '3.9' ]
+        python: [ '2.7', '3.7', '3.8', '3.9' ]
     name: Python ${{ matrix.python }} (${{ matrix.os }})
     steps:
       - name: Checkout repo
@@ -32,15 +32,25 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r test_requirements.txt
+      - name: Install core requirements
+        run: pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Install Python 2.7 test requirements
+        if: ${{ matrix.python == '2.7' }}
+        run: pip install -r test_requirements_python27.txt
+
+      - name: Install Python 3 test requirements
+        if: ${{ matrix.python != '2.7' }}
+        run: pip install -r test_requirements.txt
+
+      - name: Run unit tests
+        run: nosetests
+
+      - name: Check setup.py metadata
+        run: python setup.py check --metadata --strict
+
+      - name: Run notebook tests
         run: |
-          nosetests
-          python setup.py check --metadata --strict
           python ipynb_runner.py -v -s examples/example.ipynb
           python ipynb_runner.py -v -s examples/example_outputs.ipynb
           # Removed in https://github.com/rossant/ipycache/commit/632b7732622239cf363e3606f694735818ec6cc6
