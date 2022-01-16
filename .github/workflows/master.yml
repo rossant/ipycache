@@ -13,14 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-18.04', 'ubuntu-20.04', 'macos-10.15', 'macos-11' ]
-        # Tests running via `nosetests` on Python 3.10 fail with the error:
-        #
-        #     "AttributeError: module 'collections' has no attribute 'Callable'"
-        # 
-        # Per https://github.com/nose-devs/nose/issues/1099, nose is no longer
-        # maintained and so this will not be fixed; we need to migrate to either
-        # nose2 or pytest, per the discussion on the above issue.
-        python: [ '2.7', '3.7', '3.8', '3.9' ]
+        python: [ '2.7', '3.7', '3.8', '3.9', '3.10' ]
     name: Python ${{ matrix.python }} (${{ matrix.os }})
     steps:
       - name: Checkout repo
@@ -44,7 +37,7 @@ jobs:
         run: pip install -r test_requirements.txt
 
       - name: Run unit tests
-        run: nosetests
+        run: python -m unittest discover
 
       - name: Check setup.py metadata
         run: python setup.py check --metadata --strict
