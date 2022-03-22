@@ -8,13 +8,13 @@ import os
 import re
 import sys
 
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 from IPython.display import clear_output
 import IPython.utils.io
 from IPython.utils.io import CapturedIO, capture_output
-from IPython.utils.traitlets import Unicode
+from traitlets import Unicode
 
 
 # ------------------------------------------------------------------------------
