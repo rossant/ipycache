@@ -225,7 +225,7 @@ class capture_output_and_print(object):
         stdout = stderr = outputs = None
         if self.stdout:
             #stdout = sys.stdout = StringIO()
-            stdout = sys.stdout = myStringIO(out=IPython.utils.io.stdout)
+            stdout = sys.stdout = myStringIO(out=self.sys_stdout)
         if self.stderr:
             #stderr = sys.stderr = StringIO()
             stderr = sys.stderr = myStringIO(out=self.sys_stderr)
